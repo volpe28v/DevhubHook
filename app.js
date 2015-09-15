@@ -71,16 +71,18 @@ function postDataToMemo(name, msg){
 }
 
 function postPushNotification(name, payload, avatar){
-	var pusher = payload["pusher"]["name"];
+	var pusher = payload["pusher"]["login"];
 	var branch = payload["ref"].match(/refs\/heads\/(.+)/)[1];
 	var commits = payload["commits"];
 	var repo = payload["repository"]["name"];
-	var url = payload["repository"]["url"];
+	var url = payload["repository"]["html_url"];
+
+  console.log(payload);
 
 	// for chat
 	var commit_comments = [];
 	commits.forEach(function(value){
-		commit_comments.push("<br> - [" + value["message"].split("\n")[0] + "](" + value["url"] + ")");
+		commit_comments.push("<br> - [" + value["message"].split("\n")[0] + "](" + value["html_url"] + ")");
 	});
 
 	var msg = ":arrow_up: " + pusher + " pushes to [" + repo + " (" + branch + ")]("+ url + ")" + commit_comments.join(" ");
@@ -89,7 +91,7 @@ function postPushNotification(name, payload, avatar){
 	// for memo
 	commit_comments = [];
 	commits.forEach(function(value){
-		commit_comments.push("<br>                 |  - [" + value["message"].split("\n")[0] + "](" + value["url"] + ")");
+		commit_comments.push("<br>                 |  - [" + value["message"].split("\n")[0] + "](" + value["html_url"] + ")");
 	});
 
 	var now = moment().format("YYYY/MM/DD HH:mm");
@@ -105,9 +107,10 @@ app.post('/gitlab', function(req, res){
 });
 
 app.post('/redmine', function(req, res){
+  console.log(req.body.payload);
 	var data = req.body;
 	var action = data.payload.action;
-	var author = data.payload.issue.author.login;
+	var author = action == "opened" ? data.payload.issue.author.login : data.payload.journal.author.login;
 	var subject = data.payload.issue.subject;
 	var url = data.payload.url;
 	var msg = author + " " + action + " [" + subject + "]("+ url + ")";
