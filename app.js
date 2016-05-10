@@ -102,10 +102,24 @@ function postPullRequestNotification(name, payload, avatar){
 	var user = payload["sender"]["login"];
 	var title = payload["pull_request"]["title"];
 	var url = payload["pull_request"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":seedling: " + user + " created pull request.<br> - [" + title + "](" + url + ")";
+	var msg = ":seedling: " + user + " created pull request to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
 	postData(name, msg, avatar);
 }
+
+function postPullRequestCommentNotification(name, payload, avatar){
+	var user = payload["sender"]["login"];
+	var title = payload["issue"]["title"];
+	var url = payload["comment"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
+
+	var msg = ":speech_balloon: " + user + " commented to pull request in [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+	postData(name, msg, avatar);
+}
+
 
 app.post('/gitlab', function(req, res){
 	var data = req.body;
@@ -134,7 +148,7 @@ app.post('/gitbucket', function(req, res){
   }else if (payload["pull_request"] != null){
 	  postPullRequestNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] != null){
-    console.log("pull_request comment");
+	  postPullRequestCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] == null){
     console.log("issue");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] != null){
