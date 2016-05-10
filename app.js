@@ -33,19 +33,20 @@ if ('development' == app.get('env')) {
 
 function postData(name, msg, avatar){
 	var url = app.get('devhub') + "/notify?name=" + escape(name) + "&msg=" + escape(msg);
-    if (avatar != undefined){
-        url = url + "&avatar=" + escape(avatar);
-    }
+  if (avatar != undefined){
+     url = url + "&avatar=" + escape(avatar);
+  }
 
-    var urlObj = require("url").parse(url);
-    var getOption = {
-        "hostname"  : urlObj.hostname,
-        "port"  : urlObj.port,
-        "path"  : urlObj.path
-    };
-    if (process.env.NODE_DEVHUB_USER && process.env.NODE_DEVHUB_PASS){
-        getOption.auth = process.env.NODE_DEVHUB_USER + ":" + process.env.NODE_DEVHUB_PASS;
-    }
+  var urlObj = require("url").parse(url);
+  var getOption = {
+      "hostname"  : urlObj.hostname,
+      "port"  : urlObj.port,
+      "path"  : urlObj.path
+  };
+  if (process.env.NODE_DEVHUB_USER && process.env.NODE_DEVHUB_PASS){
+    getOption.auth = process.env.NODE_DEVHUB_USER + ":" + process.env.NODE_DEVHUB_PASS;
+  }
+
 	http.get(getOption);
 }
 
@@ -57,17 +58,17 @@ function postDataToMemo(name, msg){
 
 	var url = app.get('devhub') + "/memo?name=" + escape(name) + "&msg=" + escape(msg) + "&no=" + no + "&line=" + line;
 
-    var urlObj = require("url").parse(url);
-    var getOption = {
-        "hostname"  : urlObj.hostname,
-        "port"  : urlObj.port,
-        "path"  : urlObj.path
-    };
-    if (process.env.NODE_DEVHUB_USER && process.env.NODE_DEVHUB_PASS){
-        getOption.auth = process.env.NODE_DEVHUB_USER + ":" + process.env.NODE_DEVHUB_PASS;
-    }
+  var urlObj = require("url").parse(url);
+  var getOption = {
+      "hostname"  : urlObj.hostname,
+      "port"  : urlObj.port,
+      "path"  : urlObj.path
+  };
+  if (process.env.NODE_DEVHUB_USER && process.env.NODE_DEVHUB_PASS){
+      getOption.auth = process.env.NODE_DEVHUB_USER + ":" + process.env.NODE_DEVHUB_PASS;
+  }
 
-    http.get(getOption, function(){});
+  http.get(getOption, function(){});
 }
 
 function postPushNotification(name, payload, avatar){
@@ -97,6 +98,15 @@ function postPushNotification(name, payload, avatar){
 	postDataToMemo(name, memo_msg);
 }
 
+function postPullRequestNotification(name, payload, avatar){
+	var user = payload["sender"]["login"];
+	var title = payload["pull_request"]["title"];
+	var url = payload["pull_request"]["html_url"];
+
+	var msg = ":seedling: " + user + " created pull request.<br> - [" + title + "](" + url + ")";
+	postData(name, msg, avatar);
+}
+
 app.post('/gitlab', function(req, res){
 	var data = req.body;
 	var msg = data.user_name + " pushes to [" + data.repository.name + "](" + data.repository.homepage + ")" ;
@@ -114,13 +124,28 @@ app.post('/redmine', function(req, res){
  	postData("redmine", msg, app.get("avatar_url") + "/redmine.png");
 	res.json({});
 });
+
 app.post('/gitbucket', function(req, res){
 	var data = req.body;
 	var payload = JSON.parse(data.payload);
 
-	postPushNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+  if (payload["pusher"] != null){
+	  postPushNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+  }else if (payload["pull_request"] != null){
+	  postPullRequestNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+  }else if (payload["issue"] != null && payload["issue"]["pull_request"] != null){
+    console.log("pull_request comment");
+  }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] == null){
+    console.log("issue");
+  }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] != null){
+    console.log("issue comment");
+  }else{
+    console.log(payload);
+  }
+
 	res.json({});
 });
+
 app.post('/github', function(req, res){
 	var payload = req.body;
 
