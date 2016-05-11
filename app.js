@@ -105,7 +105,7 @@ function postPullRequestNotification(name, payload, avatar){
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":seedling: " + user + " created pull request to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+	var msg = ":seedling: " + user + " opened pull request to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
 	postData(name, msg, avatar);
 }
 
@@ -116,10 +116,31 @@ function postPullRequestCommentNotification(name, payload, avatar){
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":speech_balloon: " + user + " commented to pull request in [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+	var msg = ":speech_balloon: " + user + " commented to pull request at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
 	postData(name, msg, avatar);
 }
 
+function postIssueNotification(name, payload, avatar){
+	var user = payload["sender"]["login"];
+	var title = payload["issue"]["title"];
+	var url = payload["issue"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
+
+	var msg = ":warning: " + user + " opened issue to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+	postData(name, msg, avatar);
+}
+
+function postIssueCommentNotification(name, payload, avatar){
+	var user = payload["sender"]["login"];
+	var title = payload["issue"]["title"];
+	var url = payload["issue"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
+
+	var msg = ":speech_balloon: " + user + " commented to issue at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+	postData(name, msg, avatar);
+}
 
 app.post('/gitlab', function(req, res){
 	var data = req.body;
@@ -144,15 +165,15 @@ app.post('/gitbucket', function(req, res){
 	var payload = JSON.parse(data.payload);
 
   if (payload["pusher"] != null){
-	  postPushNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+    postPushNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["pull_request"] != null){
-	  postPullRequestNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+    postPullRequestNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] != null){
-	  postPullRequestCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+    postPullRequestCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] == null){
-    console.log("issue");
+    postIssueNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] != null){
-    console.log("issue comment");
+    postIssueCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else{
     console.log(payload);
   }
