@@ -104,9 +104,10 @@ function postPullRequestNotification(name, payload, avatar){
 	var url = payload["pull_request"]["html_url"];
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
+  var branch = payload["pull_request"]["head"]["ref"];
 
-	var msg = ":seedling: " + user + " opened pull request to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
-	postData(name, msg, avatar);
+  var msg = ":seedling: " + user + " opened pull request to [" + repo + " (" + branch + ")](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  postData(name, msg, avatar);
 }
 
 function postPullRequestCommentNotification(name, payload, avatar){
@@ -116,8 +117,8 @@ function postPullRequestCommentNotification(name, payload, avatar){
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":speech_balloon: " + user + " commented to pull request at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
-	postData(name, msg, avatar);
+  var msg = ":speech_balloon: " + user + " commented to pull request at [" + repo + "](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  postData(name, msg, avatar);
 }
 
 function postIssueNotification(name, payload, avatar){
@@ -127,8 +128,8 @@ function postIssueNotification(name, payload, avatar){
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":warning: " + user + " opened issue to [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
-	postData(name, msg, avatar);
+  var msg = ":warning: " + user + " opened issue to [" + repo + "](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  postData(name, msg, avatar);
 }
 
 function postIssueCommentNotification(name, payload, avatar){
@@ -138,8 +139,8 @@ function postIssueCommentNotification(name, payload, avatar){
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-	var msg = ":speech_balloon: " + user + " commented to issue at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
-	postData(name, msg, avatar);
+  var msg = ":speech_balloon: " + user + " commented to issue at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+  postData(name, msg, avatar);
 }
 
 app.post('/gitlab', function(req, res){
