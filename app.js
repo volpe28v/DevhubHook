@@ -99,47 +99,78 @@ function postPushNotification(name, payload, avatar){
 }
 
 function postPullRequestNotification(name, payload, avatar){
-	var user = payload["sender"]["login"];
-	var title = payload["pull_request"]["title"];
-	var url = payload["pull_request"]["html_url"];
+  var user = payload["sender"]["login"];
+  var no = payload["number"];
+  var title = payload["pull_request"]["title"];
+  var url = payload["pull_request"]["html_url"];
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
   var branch = payload["pull_request"]["head"]["ref"];
 
-  var msg = ":seedling: " + user + " opened pull request to [" + repo + " (" + branch + ")](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  var msg = ":seedling: " + user + " opened pull request at [" + repo + " (" + branch + ")](" + repo_url + ")<br> [#" + no + " " + title + "](" + url + ")";
   postData(name, msg, avatar);
 }
 
+function postPullRequestCloseNotification(name, payload, avatar){
+  var user = payload["sender"]["login"];
+  var no = payload["number"];
+  var title = payload["pull_request"]["title"];
+  var url = payload["pull_request"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
+  var branch = payload["pull_request"]["head"]["ref"];
+
+  var msg = ":fallen_leaf: " + user + " closed pull request at [" + repo + " (" + branch + ")](" + repo_url + ")<br> [#" + no + " " + title + "](" + url + ")";
+  postData(name, msg, avatar);
+}
+
+
 function postPullRequestCommentNotification(name, payload, avatar){
-	var user = payload["sender"]["login"];
-	var title = payload["issue"]["title"];
-	var url = payload["comment"]["html_url"];
+  var user = payload["sender"]["login"];
+	var no = payload["issue"]["number"];
+  var title = payload["issue"]["title"];
+  var url = payload["comment"]["html_url"];
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-  var msg = ":speech_balloon: " + user + " commented to pull request at [" + repo + "](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  var msg = ":speech_balloon: " + user + " commented to pull request at [" + repo + "](" + repo_url + ")<br> [#" + no + " " + title + "](" + url + ")";
   postData(name, msg, avatar);
 }
 
 function postIssueNotification(name, payload, avatar){
-	var user = payload["sender"]["login"];
-	var title = payload["issue"]["title"];
-	var url = payload["issue"]["html_url"];
+  var user = payload["sender"]["login"];
+  var no = payload["issue"]["number"];
+  var title = payload["issue"]["title"];
+  var url = payload["issue"]["html_url"];
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-  var msg = ":warning: " + user + " opened issue to [" + repo + "](" + repo_url + ")<br> - [" + title + "](" + url + ")";
+  var msg = ":warning: " + user + " opened issue at [" + repo + "](" + repo_url + ")<br> [#" + no + " " + title + "](" + url + ")";
   postData(name, msg, avatar);
 }
 
-function postIssueCommentNotification(name, payload, avatar){
-	var user = payload["sender"]["login"];
-	var title = payload["issue"]["title"];
-	var url = payload["issue"]["html_url"];
+function postIssueCloseNotification(name, payload, avatar){
+  var user = payload["sender"]["login"];
+  var no = payload["issue"]["number"];
+  var title = payload["issue"]["title"];
+  var url = payload["issue"]["html_url"];
   var repo = payload["repository"]["name"];
   var repo_url = payload["repository"]["html_url"];
 
-  var msg = ":speech_balloon: " + user + " commented to issue at [" + repo + "](" + repo_url + ").<br> - [" + title + "](" + url + ")";
+  var msg = ":checkered_flag: " + user + " closed issue at [" + repo + "](" + repo_url + ")<br> [#" + no + " " + title + "](" + url + ")";
+  postData(name, msg, avatar);
+}
+
+
+function postIssueCommentNotification(name, payload, avatar){
+  var user = payload["sender"]["login"];
+  var no = payload["issue"]["number"];
+  var title = payload["issue"]["title"];
+  var url = payload["issue"]["html_url"];
+  var repo = payload["repository"]["name"];
+  var repo_url = payload["repository"]["html_url"];
+
+  var msg = ":speech_balloon: " + user + " commented to issue at [" + repo + "](" + repo_url + ").<br> [#" + no + " " + title + "](" + url + ")";
   postData(name, msg, avatar);
 }
 
@@ -165,18 +196,23 @@ app.post('/gitbucket', function(req, res){
 	var data = req.body;
 	var payload = JSON.parse(data.payload);
 
+  console.log(payload);
+
   if (payload["pusher"] != null){
     postPushNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
-  }else if (payload["pull_request"] != null){
+  }else if (payload["pull_request"] != null && payload["action"] == "opened"){
     postPullRequestNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+  }else if (payload["pull_request"] != null && payload["action"] == "closed"){
+    postPullRequestCloseNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] != null){
     postPullRequestCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
-  }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] == null){
+  }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["action"] == "opened"){
     postIssueNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
+  }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["action"] == "closed"){
+    postIssueCloseNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else if (payload["issue"] != null && payload["issue"]["pull_request"] == null && payload["comment"] != null){
     postIssueCommentNotification("gitbucket", payload, app.get("avatar_url") + "/gitbucket.png");
   }else{
-    console.log(payload);
   }
 
 	res.json({});
