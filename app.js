@@ -231,6 +231,15 @@ app.post('/github', function(req, res){
 	res.json({});
 });
 
+app.post('/drops', function(req, res){
+	var payload = req.body;
+  console.log(payload);
+
+  postData("drops", "川の防災情報に更新がありました。<br>検索キーワード: " + payload.query);
+	res.json({});
+});
+
+
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
