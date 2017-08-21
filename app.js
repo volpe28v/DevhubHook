@@ -31,10 +31,14 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-function postData(name, msg, avatar){
+function postData(name, msg, avatar, room_id){
 	var url = app.get('devhub') + "/notify?name=" + escape(name) + "&msg=" + escape(msg);
   if (avatar != undefined){
      url = url + "&avatar=" + escape(avatar);
+  }
+
+  if (room_id != undefined){
+    url = url + "&room_id=" + room_id;
   }
 
   var urlObj = require("url").parse(url);
@@ -235,7 +239,7 @@ app.post('/drops', function(req, res){
 	var payload = req.body;
   console.log(payload);
 
-  postData("drops", "川の防災情報に更新がありました。<br>検索キーワード: " + payload.query);
+  postData("drops", "川の防災情報に更新がありました。<br>検索キーワード: [" + payload.query + "](" + payload.host + "?key=" +encodeURIComponent(payload.query) + ")", undefined, 2);
 	res.json({});
 });
 
