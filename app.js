@@ -239,7 +239,9 @@ app.post('/drops', function(req, res){
 	var payload = req.body;
   console.log(payload);
 
-  postData("drops", "川の防災情報に更新がありました。<br>検索キーワード: [" + payload.query + "](" + payload.host + "?key=" +encodeURIComponent(payload.query) + ")", undefined, 2);
+  var room_id = 2;
+  postData("drops", "川の防災情報に更新がありました。<br>検索キーワード: [" + payload.query + "](" + payload.host + "?key=" +encodeURIComponent(payload.query) + ")", app.get("avatar_url") + "/drops.png", room_id);
+
 	res.json({});
 });
 
